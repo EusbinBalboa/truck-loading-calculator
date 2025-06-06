@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Item Truck Loading Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background-color: #f5f5f5; }
+    .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h2, h3 { color: #333; text-align: center; }
+    .input-group { margin: 15px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+    th { background-color: #f2f2f2; }
+    input { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; margin-right: 10px; }
+    button:hover { background-color: #45a049; }
+    button:disabled { background-color: #cccccc; cursor: not-allowed; }
+    #result { margin-top: 20px; padding: 15px; background-color: #e8f5e9; border-radius: 4px; display: none; }
+    .error { color: red; font-size: 14px; margin-top: 5px; }
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .result-table th, .result-table td { padding: 8px; border: 1px solid #ddd; }
+    .result-table th { background-color: #f2f2f2; }
+    .truck-details { margin-top: 15px; }
+    .truck-details h4 { margin: 10px 0; color: #444; }
+    .truck-details p { margin: 5px 0; color: #555; }
+    .total-row { font-weight: bold; background-color: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Multi-Item Truck Loading Calculator</h2>
+    <div class="input-group">
+      <label>Truck Specs: Length 53 ft, Width 97 in, Height 100 in, Payload 30,000 lbs (fixed)</label>
+    </div>
+    <div class="input-group">
+      <label>Enter Cargo Details:</label>
+      <table id="cargoTable">
+        <thead>
+          <tr>
+            <th>Quantity</th>
+            <th>Item #</th>
+            <th>Length (in)</th>
+            <th>Width (in)</th>
+            <th>Height (in)</th>
+            <th>Weight (lbs)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="6598C002AA" class="itemNum"></td>
+            <td><input type="number" value="29.5" step="1" min="0" class="length"></td>
+            <td><input type="number" value="29.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="50.25" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="116" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="120" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="4917C002AA" class="itemNum"></td>
+            <td><input type="number" value="27.5" step="1" min="0" class="length"></td>
+            <td><input type="number" value="30" step="1" min="0" class="width"></td>
+            <td><input type="number" value="20" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="60" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="75" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="5848C002AA" class="itemNum"></td>
+            <td><input type="number" value="26" step="1" min="0" class="length"></td>
+            <td><input type="number" value="29.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="41.2" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="102" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="3826C002AA" class="itemNum"></td>
+            <td><input type="number" value="30" step="1" min="0" class="length"></td>
+            <td><input type="number" value="31" step="1" min="0" class="width"></td>
+            <td><input type="number" value="47" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="268" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="3827C002AA" class="itemNum"></td>
+            <td><input type="number" value="30" step="1" min="0" class="length"></td>
+            <td><input type="number" value="31" step="1" min="0" class="width"></td>
+            <td><input type="number" value="47" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="268" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="5961C002AA" class="itemNum"></td>
+            <td><input type="number" value="27.5" step="1" min="0" class="length"></td>
+            <td><input type="number" value="33.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="45.5" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="220" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="5963C002AA" class="itemNum"></td>
+            <td><input type="number" value="27.5" step="1" min="0" class="length"></td>
+            <td><input type="number" value="33.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="45.5" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="220" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="26" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="5970C002AA" class="itemNum"></td>
+            <td><input type="number" value="27.5" step="1" min="0" class="length"></td>
+            <td><input type="number" value="33.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="46" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="220" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="4" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="3824C002AA" class="itemNum"></td>
+            <td><input type="number" value="30" step="1" min="0" class="length"></td>
+            <td><input type="number" value="31" step="1" min="0" class="width"></td>
+            <td><input type="number" value="47" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="268" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="50" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="3825C002AA" class="itemNum"></td>
+            <td><input type="number" value="30" step="1" min="0" class="length"></td>
+            <td><input type="number" value="31" step="1" min="0" class="width"></td>
+            <td><input type="number" value="47" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="268" step="1" min="0" class="weight"></td>
+          </tr>
+          <tr>
+            <td><input type="number" value="8" step="1" min="0" class="quantity"></td>
+            <td><input type="text" value="4921C001AA" class="itemNum"></td>
+            <td><input type="number" value="30" step="1" min="0" class="length"></td>
+            <td><input type="number" value="33.5" step="1" min="0" class="width"></td>
+            <td><input type="number" value="45.75" step="0.1" min="0" class="height"></td>
+            <td><input type="number" value="141" step="1" min="0" class="weight"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <button onclick="calculateLoad()">Calculate</button>
+    <button onclick="viewLoadingSequence()" id="sequenceButton" disabled>View Loading Sequence</button>
+    <div id="result">
+      <h3>Results</h3>
+      <div id="truckAssignments" class="truck-details"></div>
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th>Item #</th>
+            <th>Max Units per Truck</th>
+            <th>Volume per Unit (ft³)</th>
+            <th>Total Volume (ft³)</th>
+            <th>Total Weight (lbs)</th>
+          </tr>
+        </thead>
+        <tbody id="itemResults"></tbody>
+      </table>
+      <p id="trucksNeeded"></p>
+      <p id="volumeResult"></p>
+      <p id="weightResult"></p>
+      <p id="spaceUtilization"></p>
+      <p id="errorMsg" class="error"></p>
+    </div>
+  </div>
+
+  <script>
+    let truckAssignmentsData = [];
+
+    function calculateLoad() {
+      // Truck specs
+      const truckLength = 53; // in feet
+      const truckWidth = 97; // in inches
+      const truckHeight = 100; // in inches
+      const truckPayload = 30000; // in lbs
+
+      // Get table inputs
+      const table = document.getElementById('cargoTable');
+      const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+      const items = [];
+      let totalCargoVolume = 0;
+      let totalCargoWeight = 0;
+
+      // Conversion factors
+      const metersToFeet = 3.28084;
+      const inToMeters = 0.0254;
+      const kgToLbs = 2.20462;
+
+      // Truck dimensions in meters
+      const truckLengthM = truckLength / metersToFeet;
+      const truckWidthM = truckWidth * inToMeters;
+      const truckHeightM = truckHeight * inToMeters;
+      const truckPayloadKg = truckPayload / kgToLbs;
+      const truckVolume = truckLengthM * truckWidthM * truckHeightM; // in cubic meters
+      const truckVolumeFt3 = truckVolume * Math.pow(metersToFeet, 3);
+
+      const resultDiv = document.getElementById('result');
+      const errorMsg = document.getElementById('errorMsg');
+      const itemResults = document.getElementById('itemResults');
+      const truckAssignments = document.getElementById('truckAssignments');
+      errorMsg.textContent = '';
+      itemResults.innerHTML = '';
+      truckAssignments.innerHTML = '';
+      resultDiv.style.display = 'none';
+      truckAssignmentsData = [];
+
+      // Validate and process each item
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        const quantity = parseInt(cells[0].getElementsByTagName('input')[0].value) || 0;
+        const itemNum = cells[1].getElementsByTagName('input')[0].value.trim();
+        const length = parseFloat(cells[2].getElementsByTagName('input')[0].value) || 0;
+        const width = parseFloat(cells[3].getElementsByTagName('input')[0].value) || 0;
+        const height = parseFloat(cells[4].getElementsByTagName('input')[0].value) || 0;
+        const weight = parseFloat(cells[5].getElementsByTagName('input')[0].value) || 0;
+
+        // Validate item number and other fields
+        if (!itemNum) {
+          errorMsg.textContent = `Please enter a valid Item # for row ${i + 1}.`;
+          resultDiv.style.display = 'block';
+          return;
+        }
+        if (quantity <= 0 || length <= 0 || width <= 0 || height <= 0 || weight <= 0) {
+          errorMsg.textContent = `Please enter valid positive values for all fields in item ${itemNum}.`;
+          resultDiv.style.display = 'block';
+          return;
+        }
+
+        // Check for duplicate item numbers
+        if (items.some(item => item.itemNum === itemNum)) {
+          errorMsg.textContent = `Duplicate Item # "${itemNum}" detected. Each item must have a unique identifier.`;
+          resultDiv.style.display = 'block';
+          return;
+        }
+
+        // Convert to meters for calculation
+        const lengthM = length * inToMeters;
+        const widthM = width * inToMeters;
+        const heightM = height * inToMeters;
+        const weightKg = weight / kgToLbs;
+
+        // Calculate volume per unit
+        const volumePerUnitM = lengthM * widthM * heightM; // in cubic meters
+        const volumePerUnitFt3 = volumePerUnitM * Math.pow(metersToFeet, 3);
+        const totalItemVolume = volumePerUnitM * quantity;
+        const totalItemWeight = weightKg * quantity;
+
+        // Calculate max units per truck with double stacking and width optimization
+        const unitsAlongLength1 = Math.floor(truckLengthM / lengthM);
+        const unitsAlongWidth1 = Math.floor(truckWidthM / widthM);
+        const unitsAlongLength2 = Math.floor(truckLengthM / widthM);
+        const unitsAlongWidth2 = Math.floor(truckWidthM / lengthM);
+        const unitsAlongHeight = Math.floor(truckHeightM / heightM) * (height * 2 <= 100 ? 2 : 1); // Double stack if possible
+        const maxUnitsByVolume1 = unitsAlongLength1 * unitsAlongWidth1 * unitsAlongHeight;
+        const maxUnitsByVolume2 = unitsAlongLength2 * unitsAlongWidth2 * unitsAlongHeight;
+        const maxUnitsByVolume = Math.max(maxUnitsByVolume1, maxUnitsByVolume2);
+        const maxUnitsByWeight = Math.floor(truckPayloadKg / weightKg);
+        const maxUnitsPerTruck = Math.min(maxUnitsByVolume, maxUnitsByWeight);
+
+        items.push({
+          itemNum: itemNum,
+          quantity: quantity,
+          maxUnitsPerTruck: maxUnitsPerTruck,
+          volumePerUnit: volumePerUnitFt3,
+          totalVolume: totalItemVolume,
+          totalWeight: totalItemWeight * kgToLbs,
+          lengthM: lengthM,
+          widthM: widthM,
+          heightM: heightM,
+          weightKg: weightKg,
+          weightLbs: weight,
+          remainingQuantity: quantity
+        });
+
+        totalCargoVolume += totalItemVolume;
+        totalCargoWeight += totalItemWeight;
+      }
+
+      // Calculate number of trucks needed
+      const trucksNeededByVolume = Math.ceil(totalCargoVolume / truckVolume);
+      const trucksNeededByWeight = Math.ceil(totalCargoWeight / truckPayloadKg);
+      const trucksNeeded = Math.max(trucksNeededByVolume, trucksNeededByWeight);
+
+      // Assign items to trucks
+      const trucks = [];
+      let currentTruck = { items: [], volume: 0, weight: 0, weightLbs: 0 };
+      let itemsRemaining = true;
+
+      while (itemsRemaining) {
+        let addedItem = false;
+        for (let item of items) {
+          if (item.remainingQuantity === 0) continue;
+
+          // Calculate how many units of this item can fit in the current truck
+          const unitsByVolume = Math.floor((truckVolume - currentTruck.volume) / (item.lengthM * item.widthM * item.heightM));
+          const unitsByWeight = Math.floor((truckPayloadKg - currentTruck.weight) / item.weightKg);
+          const unitsPossible = Math.min(unitsByVolume, unitsByWeight, item.remainingQuantity, item.maxUnitsPerTruck);
+
+          if (unitsPossible > 0) {
+            currentTruck.items.push({
+              itemNum: item.itemNum,
+              units: unitsPossible,
+              volumePerUnitM: item.lengthM * item.widthM * item.heightM,
+              weightPerUnitKg: item.weightKg,
+              weightPerUnitLbs: item.weightLbs,
+              totalItemWeight: unitsPossible * item.weightLbs // Add total weight for this item in this truck
+            });
+            currentTruck.volume += unitsPossible * item.lengthM * item.widthM * item.heightM;
+            currentTruck.weight += unitsPossible * item.weightKg;
+            currentTruck.weightLbs += unitsPossible * item.weightLbs;
+            item.remainingQuantity -= unitsPossible;
+            addedItem = true;
+          }
+        }
+
+        // Move to next truck if no more items can be added or truck is full
+        if (!addedItem || currentTruck.volume >= truckVolume * 0.999 || currentTruck.weight >= truckPayloadKg * 0.999) {
+          if (currentTruck.items.length > 0) {
+            trucks.push({ ...currentTruck });
+          }
+          currentTruck = { items: [], volume: 0, weight: 0, weightLbs: 0 };
+        }
+
+        // Check if any items remain
+        itemsRemaining = items.some(item => item.remainingQuantity > 0);
+
+        // Ensure we create enough trucks to match trucksNeeded
+        if (!itemsRemaining && trucks.length < trucksNeeded) {
+          if (currentTruck.items.length > 0) {
+            trucks.push({ ...currentTruck });
+            currentTruck = { items: [], volume: 0, weight: 0, weightLbs: 0 };
+          }
+          while (trucks.length < trucksNeeded) {
+            trucks.push({ items: [], volume: 0, weight: 0, weightLbs: 0 });
+          }
+        }
+      }
+
+      // Store truck assignments for the loading sequence page
+      try {
+        truckAssignmentsData = trucks;
+        localStorage.setItem('truckAssignments', JSON.stringify(truckAssignmentsData));
+      } catch (e) {
+        errorMsg.textContent = 'Failed to save data for loading sequence. Please ensure localStorage is enabled.';
+        resultDiv.style.display = 'block';
+        return;
+      }
+
+      // Calculate utilization per truck (approximate, assumes even distribution)
+      const utilizedVolume = totalCargoVolume / trucksNeeded;
+      const volumeUtilization = ((utilizedVolume / truckVolume) * 100).toFixed(2);
+      const utilizedWeight = totalCargoWeight * kgToLbs / trucksNeeded;
+      const weightUtilization = ((utilizedWeight / truckPayload) * 100).toFixed(2);
+
+      // Display truck assignments
+      trucks.forEach((truck, index) => {
+        const truckDiv = document.createElement('div');
+        truckDiv.innerHTML = `<h4>Truck #${index + 1}</h4>`;
+        if (truck.items.length === 0) {
+          truckDiv.innerHTML += `
+            <p>No items assigned (empty truck).</p>
+            <p>Volume utilization: 0.00% (0.00 ft³ used)</p>
+            <p>Weight utilization: 0.00% (0.00 lbs used)</p>
+            <p>Total weight: 0.00 lbs</p>
+          `;
+        } else {
+          const truckVolumeUtilization = ((truck.volume / truckVolume) * 100).toFixed(2);
+          const truckWeightUtilization = ((truck.weight * kgToLbs / truckPayload) * 100).toFixed(2);
+          truckDiv.innerHTML += `
+            <p>Volume utilization: ${truckVolumeUtilization}% (${(truck.volume * Math.pow(metersToFeet, 3)).toFixed(2)} ft³ used)</p>
+            <p>Weight utilization: ${truckWeightUtilization}% (${(truck.weight * kgToLbs).toFixed(2)} lbs used)</p>
+            <p>Total weight: ${truck.weightLbs.toFixed(2)} lbs</p>
+          `;
+          const truckTable = document.createElement('table');
+          truckTable.className = 'result-table';
+          let totalUnits = 0;
+          let totalTruckWeight = 0;
+          truck.items.forEach(item => {
+            totalUnits += item.units;
+            totalTruckWeight += item.totalItemWeight;
+          });
+          truckTable.innerHTML = `
+            <thead>
+              <tr>
+                <th>Item #</th>
+                <th>Units</th>
+                <th>Total Weight (lbs)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${truck.items.map(item => `
+                <tr>
+                  <td>${item.itemNum}</td>
+                  <td>${item.units}</td>
+                  <td>${item.totalItemWeight.toFixed(2)}</td>
+                </tr>
+              `).join('')}
+              <tr class="total-row">
+                <td>Total</td>
+                <td>${totalUnits}</td>
+                <td>${totalTruckWeight.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          `;
+          truckDiv.appendChild(truckTable);
+        }
+        truckAssignments.appendChild(truckDiv);
+      });
+
+      // Display item results
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.itemNum}</td>
+          <td>${item.maxUnitsPerTruck} (limited by ${item.maxUnitsPerTruck === Math.min(
+            Math.floor(truckLengthM / item.lengthM),
+            Math.floor(truckWidthM / item.widthM),
+            Math.floor(truckHeightM / item.heightM)
+          ) * Math.floor(truckLengthM / item.lengthM) * Math.floor(truckWidthM / item.widthM) * (item.height * 2 <= 100 ? 2 : 1) ? 'volume' : 'weight'})</td>
+          <td>${item.volumePerUnit.toFixed(2)}</td>
+          <td>${(item.totalVolume * Math.pow(metersToFeet, 3)).toFixed(2)}</td>
+          <td>${item.totalWeight.toFixed(2)}</td>
+        `;
+        itemResults.appendChild(row);
+      });
+
+      // Display aggregate results
+      document.getElementById('trucksNeeded').textContent = 
+        `Total trucks needed: ${trucksNeeded} (based on dimensions)`;
+      document.getElementById('volumeResult').textContent = 
+        `Total cargo volume: ${(totalCargoVolume * Math.pow(metersToFeet, 3)).toFixed(2)} ft³ (Truck volume: ${truckVolumeFt3.toFixed(2)} ft³)`;
+      document.getElementById('weightResult').textContent = 
+        `Total cargo weight: ${(totalCargoWeight * kgToLbs).toFixed(2)} lbs (Truck payload: ${truckPayload.toFixed(2)} lbs)`;
+      document.getElementById('spaceUtilization').textContent = 
+        `Average utilization per truck: ${volumeUtilization}% of volume, ${weightUtilization}% of weight`;
+      resultDiv.style.display = 'block';
+
+      // Enable the loading sequence button
+      document.getElementById('sequenceButton').disabled = false;
+    }
+
+    function viewLoadingSequence() {
+      try {
+        if (truckAssignmentsData.length === 0) {
+          document.getElementById('errorMsg').textContent = 'No truck assignment data available. Please calculate first.';
+          return;
+        }
+        window.location.href = 'loading_sequence.html';
+      } catch (e) {
+        document.getElementById('errorMsg').textContent = 'Failed to navigate to loading sequence page. Ensure loading_sequence.html exists in the same directory.';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truck Loading Sequence</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background-color: #f5f5f5; }
+    .container { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h2, h3, h4 { color: #333; }
+    h2 { text-align: center; }
+    .truck-section { margin: 20px 0; }
+    .truck-details { margin: 10px 0; }
+    .truck-details p { margin: 5px 0; color: #555; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+    th { background-color: #f2f2f2; }
+    canvas { border: 1px solid #ddd; margin: 15px 0; background-color: #fff; }
+    .error { color: red; font-size: 14px; margin: 10px 0; }
+    button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    button:hover { background-color: #45a049; }
+    ol { margin: 10px 0; padding-left: 20px; }
+    li { margin: 5px 0; color: #555; }
+    .total-row { font-weight: bold; background-color: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Truck Loading Sequence</h2>
+    <div id="errorMsg" class="error"></div>
+    <div id="truckSections"></div>
+    <button onclick="window.location.href='index.html'">Back to Calculator</button>
+  </div>
+
+  <script>
+    // Truck dimensions (in inches for visualization, consistent with calculator)
+    const truckLength = 53 * 12; // 53 ft to inches
+    const truckWidth = 97;       // in inches
+    const truckHeight = 100;     // in inches
+    const scale = 0.5;           // Scale factor for visualization
+
+    // Conversion factors
+    const metersToFeet = 3.28084;
+    const inToMeters = 0.0254;
+    const kgToLbs = 2.20462;
+
+    // Load truck assignments from localStorage
+    let truckAssignments = [];
+    try {
+      const data = localStorage.getItem('truckAssignments');
+      if (data) {
+        truckAssignments = JSON.parse(data);
+      } else {
+        document.getElementById('errorMsg').textContent = 'No truck assignment data found. Please run the calculator first.';
+      }
+    } catch (e) {
+      document.getElementById('errorMsg').textContent = 'Error loading truck assignment data. Ensure data is saved from the calculator.';
+    }
+
+    // Function to draw a truck's loading sequence
+    function drawTruck(truck, index) {
+      const section = document.createElement('div');
+      section.className = 'truck-section';
+      section.innerHTML = `<h3>Truck #${index + 1}</h3>`;
+      
+      if (truck.items.length === 0) {
+        section.innerHTML += `
+          <div class="truck-details">
+            <p>No items assigned (empty truck).</p>
+            <p>Volume used: 0.00 ft³</p>
+            <p>Weight used: 0.00 lbs</p>
+          </div>`;
+        document.getElementById('truckSections').appendChild(section);
+        return;
+      }
+
+      // Calculate total volume and weight for display
+      const totalVolumeFt3 = truck.volume * Math.pow(metersToFeet, 3);
+      const totalWeightLbs = truck.weight * kgToLbs;
+
+      // Sort items for loading sequence: prioritize highest quantity first, then by weight (descending)
+      const sortedItems = [...truck.items].sort((a, b) => {
+        const quantityA = a.units;
+        const quantityB = b.units;
+        const weightA = a.weightPerUnitLbs;
+        const weightB = b.weightPerUnitLbs;
+        return quantityB - quantityA || weightB - weightA; // Sort by quantity descending, then weight
+      });
+
+      // Generate loading sequence instructions
+      let sequenceHTML = `<h4>Loading Sequence</h4><ol>`;
+      let step = 1;
+      sortedItems.forEach(item => {
+        const itemLengthIn = (item.volumePerUnitM / (item.weightPerUnitKg / item.weightPerUnitLbs) / item.weightPerUnitLbs) / inToMeters;
+        const itemWidthIn = (item.volumePerUnitM / itemLengthIn / (item.weightPerUnitKg / item.weightPerUnitLbs)) / inToMeters;
+        const itemHeightIn = (item.volumePerUnitM / (itemLengthIn * inToMeters) / (itemWidthIn * inToMeters)) / inToMeters;
+        for (let i = 0; i < item.units; i++) {
+          sequenceHTML += `
+            <li>Step ${step}: Load 1 unit of Item #${item.itemNum} (L: ${itemLengthIn.toFixed(1)} in, W: ${itemWidthIn.toFixed(1)} in, H: ${itemHeightIn.toFixed(1)} in, Weight: ${item.weightPerUnitLbs.toFixed(2)} lbs) from back to front, bottom to top.</li>
+          `;
+          step++;
+        }
+      });
+      sequenceHTML += `</ol>`;
+
+      // Create table for item details
+      let tableHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Item #</th>
+              <th>Units</th>
+              <th>Volume per Unit (ft³)</th>
+              <th>Weight per Unit (lbs)</th>
+              <th>Total Weight (lbs)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      let totalUnits = 0;
+      let totalTruckWeight = 0;
+      truck.items.forEach(item => {
+        const volumePerUnitFt3 = item.volumePerUnitM * Math.pow(metersToFeet, 3);
+        const itemTotalWeight = item.units * item.weightPerUnitLbs;
+        totalUnits += item.units;
+        totalTruckWeight += itemTotalWeight;
+        tableHTML += `
+          <tr>
+            <td>${item.itemNum}</td>
+            <td>${item.units}</td>
+            <td>${volumePerUnitFt3.toFixed(2)}</td>
+            <td>${item.weightPerUnitLbs.toFixed(2)}</td>
+            <td>${itemTotalWeight.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      tableHTML += `
+          <tr class="total-row">
+            <td>Total</td>
+            <td>${totalUnits}</td>
+            <td>-</td>
+            <td>-</td>
+            <td>${totalTruckWeight.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+
+      // Add truck details, sequence, and table
+      section.innerHTML += `
+        <div class="truck-details">
+          <p>Volume used: ${totalVolumeFt3.toFixed(2)} ft³</p>
+          <p>Weight used: ${totalWeightLbs.toFixed(2)} lbs</p>
+        </div>
+        ${sequenceHTML}
+        ${tableHTML}
+      `;
+
+      // Create canvas for 2D visualization (top-down view)
+      const canvas = document.createElement('canvas');
+      canvas.width = truckLength * scale;
+      canvas.height = truckWidth * scale;
+      section.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+
+      // Draw truck outline
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, truckLength * scale, truckWidth * scale);
+
+      // 2D packing visualization (top-down view, sequential placement)
+      let currentX = 0;
+      let currentY = 0;
+      let maxHeightInRow = 0;
+      const colors = ['#FF6347', '#4682B4', '#32CD32', '#FFD700', '#6A5ACD', '#FF69B4', '#8B4513', '#00CED1', '#FFA500', '#9932CC', '#DC143C'];
+      let itemIndex = 0;
+
+      sortedItems.forEach(item => {
+        const itemLengthIn = (item.volumePerUnitM / (item.weightPerUnitKg / item.weightPerUnitLbs) / item.weightPerUnitLbs) / inToMeters;
+        const itemWidthIn = (item.volumePerUnitM / itemLengthIn / (item.weightPerUnitKg / item.weightPerUnitLbs)) / inToMeters;
+
+        for (let j = 0; j < item.units; j++) {
+          if (currentX + itemLengthIn * scale > truckLength * scale) {
+            currentX = 0;
+            currentY += maxHeightInRow;
+            maxHeightInRow = 0;
+          }
+          if (currentY + itemWidthIn * scale > truckWidth * scale) {
+            document.getElementById('errorMsg').textContent = `Warning: Items in Truck #${index + 1} exceed truck dimensions in visualization.`;
+            break;
+          }
+
+          // Draw item
+          ctx.fillStyle = colors[itemIndex % colors.length];
+          ctx.fillRect(currentX, currentY, itemLengthIn * scale, itemWidthIn * scale);
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(currentX, currentY, itemLengthIn * scale, itemWidthIn * scale);
+          ctx.fillStyle = '#000';
+          ctx.font = '12px Arial';
+          ctx.fillText(item.itemNum, currentX + 5, currentY + 15);
+
+          currentX += itemLengthIn * scale;
+          maxHeightInRow = Math.max(maxHeightInRow, itemWidthIn * scale);
+        }
+        itemIndex++;
+      });
+
+      document.getElementById('truckSections').appendChild(section);
+    }
+
+    // Render all trucks
+    if (truckAssignments.length > 0) {
+      truckAssignments.forEach((truck, index) => {
+        drawTruck(truck, index);
+      });
+    }
+  </script>
+</body>
+</html>
